@@ -44,13 +44,6 @@ TH4D::TH4D(const char *name,const char *title,Int_t nbinsx,const Double_t *xbins
     hists.back()->SetDirectory(0);
   }
 }
-TH4D::TH4D(TString path){
-  if(path.EndsWith(".root")){
-    ReadFile(path);
-    return;
-  }
-  Error("TH4D","path should end with .root");
-}
 
 Int_t TH4D::Fill(Double_t x, Double_t y, Double_t z, Double_t u, Double_t w){
   return hists.at(fXaxis.FindBin(x))->Fill(y,z,u,w);
@@ -58,39 +51,90 @@ Int_t TH4D::Fill(Double_t x, Double_t y, Double_t z, Double_t u, Double_t w){
 Int_t TH4D::Fill(Double_t x, Double_t y, Double_t z, Double_t u){
   return hists.at(fXaxis.FindBin(x))->Fill(y,z,u);
 }
-    
-Int_t TH4D::WriteFile(TString path){
-  TFile* f=NULL;
-  if(path.EndsWith(".root")){
-    f=new TFile(path,"recreate");
-  }else{
-    if(system("mkdir -p "+path)==0){
-      f=new TFile(path+"/"+GetName()+".root","recreate");
-    }else{
-      Error("TH4D","cannot make directory");
-      return false;
-    }
-  }
-  fXaxis.Write();
-  for(auto& hist:hists) hist->Write();
-  delete f;
-  return true;
-}
 
-Int_t TH4D::ReadFile(TString path){
-  TFile f(path);
-  TAxis* axis=(TAxis*)f.Get("xaxis");
-  if(axis){
-    axis->Copy(fXaxis);
-    int nbinsx=fXaxis.GetNbins();
-    for(int i=0;i<nbinsx+2;i++){
-      TH3D* hist=(TH3D*)f.Get(Form("%d",i));
-      hist->SetDirectory(0);
-      hists.push_back(hist);
-    }
-  }else{
-    Error("TH4D","no xaxis in file");
+Double_t TH4D::IntegralAndError(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Double_t & error, Option_t *option) const {
+  Double_t integral=0;
+  Double_t error2sum=0;
+  for(int i=binx1;i<=binx2;i++){
+    Double_t this_error=0;
+    integral+=hists[i]->IntegralAndError(biny1,biny2,binz1,binz2,binu1,binu2,this_error,option);
+    error2sum=this_error*this_error;
+  }
+  error=sqrt(error2sum);
+  return integral;
+}
+Double_t TH4D::Integral(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Option_t *option) const {
+  Double_t dummy=0;
+  return IntegralAndError(binx1,binx2,biny1,biny2,binz1,binz2,binu1,binu2,dummy,option);
+}
+Double_t TH4D::Integral(Option_t *option) const {
+  return Integral(fXaxis.GetFirst(),fXaxis.GetLast(),
+		  hists.at(0)->GetXaxis()->GetFirst(),hists.at(0)->GetXaxis()->GetLast(),
+		  hists.at(0)->GetYaxis()->GetFirst(),hists.at(0)->GetYaxis()->GetLast(),
+		  hists.at(0)->GetZaxis()->GetFirst(),hists.at(0)->GetZaxis()->GetLast(),option);
+}
+  
+bool TH4D::CheckConsistency() const {
+  int nbinsx=fXaxis.GetNbins();
+  bool consistent=true;
+  for(int i=1;i<nbinsx+2;i++){
+    consistent&=TH1::CheckConsistency((TH1*)hists.at(0),(TH1*)hists.at(1));
+  }
+  if(!consistent){
+    Error("TH4D","not consistent");
     return false;
   }
   return true;
 }
+bool TH4D::CheckConsistency(const TH4D* h1,const TH4D* h2){
+  if(!h1->CheckConsistency()) return false;
+  if(!h2->CheckConsistency()) return false;
+  if(!CheckEqualAxes(h1->GetXaxis(),h2->GetXaxis())) return false; 
+  return true;
+}
+
+//TH4D::TH4D(TString path){
+//  if(path.EndsWith(".root")){
+//    ReadFile(path);
+//    return;
+//  }
+//  Error("TH4D","path should end with .root");
+//}
+//Int_t TH4D::WriteFile(TString path){
+//  if(!CheckConsistency()) return false;
+//  TFile* f=NULL;
+//  if(path.EndsWith(".root")){
+//    f=new TFile(path,"recreate");
+//  }else{
+//    if(system("mkdir -p "+path)==0){
+//      f=new TFile(path+"/"+GetName()+".root","recreate");
+//    }else{
+//      Error("TH4D","cannot make directory");
+//      return false;
+//    }
+//  }
+//  fXaxis.Write();
+//  for(auto& hist:hists) hist->Write();
+//  delete f;
+//  return true;
+//}
+//
+//Int_t TH4D::ReadFile(TString path){
+//  TFile f(path);
+//  TAxis* axis=(TAxis*)f.Get("xaxis");
+//  if(axis){
+//    axis->Copy(fXaxis);
+//    int nbinsx=fXaxis.GetNbins();
+//    for(int i=0;i<nbinsx+2;i++){
+//      TH3D* hist=(TH3D*)f.Get(Form("%d",i));
+//      hist->SetDirectory(0);
+//      hists.push_back(hist);
+//    }
+//  }else{
+//    Error("TH4D","no xaxis in file");
+//    return false;
+//  }
+//  if(!CheckConsistency()) return false;
+//  return true;
+//}
+//
