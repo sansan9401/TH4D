@@ -25,12 +25,16 @@ class TH4D : public TH1{
   virtual Double_t IntegralAndError(Int_t binx1, Int_t binx2, Double_t & err, Option_t *option="") const{return -1;} // MayNotUse
   virtual Double_t Integral(Int_t, Int_t, Option_t*) const{return -1;} // MayNotUse
 
-
   virtual Int_t Fill(Double_t x, Double_t y, Double_t z, Double_t u, Double_t w);
   virtual Int_t Fill(Double_t x, Double_t y, Double_t z, Double_t u);
   virtual Double_t IntegralAndError(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Double_t & error, Option_t *option="") const;
   virtual Double_t Integral(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Option_t *option="") const;
   virtual Double_t Integral(Option_t *option="") const;
+
+  virtual const TAxis* GetXaxis() const {return &fXaxis;}
+  virtual const TAxis* GetYaxis() const {if(hists.size()) return hists[0]->GetXaxis();else return NULL;}
+  virtual const TAxis* GetZaxis() const {if(hists.size()) return hists[0]->GetYaxis();else return NULL;}
+  virtual const TAxis* GetUaxis() const {if(hists.size()) return hists[0]->GetZaxis();else return NULL;}
 
   virtual bool CheckConsistency() const;
   static bool CheckConsistency(const TH4D* h1,const TH4D* h2);
