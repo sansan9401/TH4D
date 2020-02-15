@@ -1,11 +1,12 @@
 #ifndef HS_TH4D
 #define HS_TH4D
+#include <vector>
 #include "TH3.h"
 #include "TFile.h"
 
 class TH4D : public TH1{
  public:
-  vector<TH3D*> hists;
+  std::vector<TH3D*> hists;
   
   TH4D();
   ~TH4D();
