@@ -1,5 +1,5 @@
-#ifndef HS_TH4D
-#define HS_TH4D
+#ifndef __HS_TH4D__
+#define __HS_TH4D__
 #include <vector>
 #include "TH3.h"
 #include "TFile.h"
@@ -18,8 +18,9 @@ class TH4D : public TH1{
       ,Int_t nbinsy,const Double_t *ybins
       ,Int_t nbinsz,const Double_t *zbins
       ,Int_t nbinsu,const Double_t *ubins);
-  //TH4D(TString path);
-  
+
+  virtual void SetDirectory(TDirectory *dir);
+
   virtual Int_t Fill(Double_t){return -1;} // MayNotUse
   virtual Int_t Fill(Double_t, Double_t){return -1;} // MayNotUse
   virtual Int_t Fill(const char*, Double_t){return -1;} // MayNotUse
@@ -32,10 +33,15 @@ class TH4D : public TH1{
   virtual Double_t Integral(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Option_t *option="") const;
   virtual Double_t Integral(Option_t *option="") const;
 
-  virtual const TAxis* GetXaxis() const {return &fXaxis;}
-  virtual const TAxis* GetYaxis() const {if(hists.size()) return hists[0]->GetXaxis();else return NULL;}
-  virtual const TAxis* GetZaxis() const {if(hists.size()) return hists[0]->GetYaxis();else return NULL;}
-  virtual const TAxis* GetUaxis() const {if(hists.size()) return hists[0]->GetZaxis();else return NULL;}
+  virtual const TAxis* GetXaxis() const {if(hists.size()) return hists[0]->GetXaxis();else return NULL;}
+  virtual const TAxis* GetYaxis() const {if(hists.size()) return hists[0]->GetYaxis();else return NULL;}
+  virtual const TAxis* GetZaxis() const {if(hists.size()) return hists[0]->GetZaxis();else return NULL;}
+  virtual const TAxis* GetUaxis() const {return &fXaxis;}
+
+  virtual TH1D* ProjectionX(const char *name="_px", Int_t iymin=0, Int_t iymax=-1, Int_t izmin=0, Int_t izmax=-1, Int_t iumin=0, Int_t iumax=-1, Option_t *option="") const;
+  virtual TH1D* ProjectionY(const char *name="_py", Int_t ixmin=0, Int_t ixmax=-1, Int_t izmin=0, Int_t izmax=-1, Int_t iumin=0, Int_t iumax=-1, Option_t *option="") const;
+  virtual TH1D* ProjectionZ(const char *name="_pz", Int_t ixmin=0, Int_t ixmax=-1, Int_t iymin=0, Int_t iymax=-1, Int_t iumin=0, Int_t iumax=-1, Option_t *option="") const;
+  virtual TH1D* ProjectionU(const char *name="_pu", Int_t ixmin=0, Int_t ixmax=-1, Int_t iymin=0, Int_t iymax=-1, Int_t izmin=0, Int_t izmax=-1, Option_t *option="") const;
 
   virtual bool CheckConsistency() const;
   static bool CheckConsistency(const TH4D* h1,const TH4D* h2);
@@ -43,7 +49,7 @@ class TH4D : public TH1{
   //virtual Int_t WriteFile(TString path=".");
   //virtual Int_t ReadFile(TString path);
 
-  ClassDef(TH4D,1);
+  ClassDef(TH4D,2);
 };
   
 #endif
