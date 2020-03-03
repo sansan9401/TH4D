@@ -52,6 +52,32 @@ void TH4D::SetDirectory(TDirectory *dir){
   for(auto hist:hists) hist->SetDirectory(dir);
 }
 
+Bool_t TH4D::Add(const TH1 *h1, Double_t c1){
+  if (!h1) {
+    Error("Add","Attempt to add a non-existing histogram");
+    return kFALSE;
+  }
+  if(!CheckConsistency((TH4D*)h1)){
+    Error("Add","Can't add. Not consistent");
+    return kFALSE;
+  }
+  int nubins=GetUaxis()->GetNbins();
+  for(int i=0;i<nubins+2;i++){
+    hists.at(i)->Add((TH1*)((TH4D*)h1)->hists.at(i),c1);
+  }
+  return true;
+}
+Long64_t TH4D::Merge(TCollection *list){
+  TIter iter(list);
+  while(TObject *obj=iter()){
+    if(obj) Add((TH1*)obj);
+  }    
+  return true;
+}
+void TH4D::Sumw2(Bool_t flag){
+  TH1::Sumw2(flag);
+  for(auto hist:hists) hist->TH1::Sumw2(flag);
+}
 Int_t TH4D::Fill(Double_t x, Double_t y, Double_t z, Double_t u, Double_t w){
   return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z,w);
 }
@@ -124,7 +150,9 @@ TH1D* TH4D::ProjectionU(const char *name, Int_t ixmin, Int_t ixmax, Int_t iymin,
   TString hname = name;
   if (hname == "_px") hname = TString::Format("%s%s", GetName(), name);
   TString title =  TString::Format("%s ( Projection X )",GetTitle());
-  TH1D* hist=new TH1D(hname,title,GetUaxis()->GetNbins(),GetUaxis()->GetXbins()->GetArray());
+  TH1D* hist=NULL;
+  if(GetUaxis()->GetXbins()->GetArray()) hist=new TH1D(hname,title,GetUaxis()->GetNbins(),GetUaxis()->GetXbins()->GetArray());
+  else hist=new TH1D(hname,title,GetUaxis()->GetNbins(),GetUaxis()->GetXmin(),GetUaxis()->GetXmax());
   for(int i=0;i<GetUaxis()->GetNbins()+2;i++){
     double content=0,error=0;
     content=hists.at(i)->IntegralAndError(ixmin,ixmax,iymin,iymax,izmin,izmax,error,option);
@@ -145,7 +173,10 @@ bool TH4D::CheckConsistency() const {
   }
   return true;
 }
-bool TH4D::CheckConsistency(const TH4D* h1,const TH4D* h2){
+bool TH4D::CheckConsistency(const TH4D* h1) const {
+  return CheckConsistency(h1,this);
+}
+bool TH4D::CheckConsistency(const TH4D* h1,const TH4D* h2) {
   if(!h1->CheckConsistency()) return false;
   if(!h2->CheckConsistency()) return false;
   if(!CheckEqualAxes(h1->GetUaxis(),h2->GetUaxis())) return false; 

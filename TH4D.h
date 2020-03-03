@@ -21,6 +21,10 @@ class TH4D : public TH1{
 
   virtual void SetDirectory(TDirectory *dir);
 
+  virtual Bool_t Add(const TH1 *h1, Double_t c1=1);
+  virtual Long64_t Merge(TCollection *list);
+  virtual void Sumw2(Bool_t flag=kTRUE);
+
   virtual Int_t Fill(Double_t){return -1;} // MayNotUse
   virtual Int_t Fill(Double_t, Double_t){return -1;} // MayNotUse
   virtual Int_t Fill(const char*, Double_t){return -1;} // MayNotUse
@@ -44,6 +48,7 @@ class TH4D : public TH1{
   virtual TH1D* ProjectionU(const char *name="_pu", Int_t ixmin=0, Int_t ixmax=-1, Int_t iymin=0, Int_t iymax=-1, Int_t izmin=0, Int_t izmax=-1, Option_t *option="") const;
 
   virtual bool CheckConsistency() const;
+  virtual bool CheckConsistency(const TH4D* h1) const;
   static bool CheckConsistency(const TH4D* h1,const TH4D* h2);
 
   //virtual Int_t WriteFile(TString path=".");
