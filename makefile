@@ -5,4 +5,9 @@ SRCDIR = ./
 INCDIR = ./
 ADDITIONAL_ROOTMAPLIBRARY= -rml libHist.so
 
-include $(SKFlat_WD)/makefile.common
+ifdef SKFlat_WD
+  include $(SKFlat_WD)/makefile.common
+else
+  include makefile.common
+endif
+

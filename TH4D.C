@@ -47,11 +47,6 @@ TH4D::TH4D(const char *name,const char *title,Int_t nbinsx,const Double_t *xbins
   }
 }
 
-void TH4D::SetDirectory(TDirectory *dir){
-  TH1::SetDirectory(dir);
-  for(auto hist:hists) hist->SetDirectory(dir);
-}
-
 Bool_t TH4D::Add(const TH1 *h1, Double_t c1){
   if (!h1) {
     Error("Add","Attempt to add a non-existing histogram");
@@ -67,24 +62,74 @@ Bool_t TH4D::Add(const TH1 *h1, Double_t c1){
   }
   return true;
 }
-Long64_t TH4D::Merge(TCollection *list){
-  TIter iter(list);
-  while(TObject *obj=iter()){
-    if(obj) Add((TH1*)obj);
-  }    
+
+bool TH4D::CheckConsistency() const {
+  int nbinsu=GetUaxis()->GetNbins();
+  bool consistent=true;
+  for(int i=1;i<nbinsu+2;i++){
+    consistent&=TH1::CheckConsistency((TH1*)hists.at(0),(TH1*)hists.at(i));
+  }
+  if(!consistent){
+    Error("TH4D","not consistent");
+    return false;
+  }
   return true;
 }
-void TH4D::Sumw2(Bool_t flag){
-  TH1::Sumw2(flag);
-  for(auto hist:hists) hist->TH1::Sumw2(flag);
-}
-Int_t TH4D::Fill(Double_t x, Double_t y, Double_t z, Double_t u, Double_t w){
-  return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z,w);
-}
-Int_t TH4D::Fill(Double_t x, Double_t y, Double_t z, Double_t u){
-  return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z);
+bool TH4D::CheckConsistency(const TH4D* h1,const TH4D* h2) {
+  if(!h1->CheckConsistency()) return false;
+  if(!h2->CheckConsistency()) return false;
+  if(!CheckEqualAxes(h1->GetUaxis(),h2->GetUaxis())) return false; 
+  return true;
 }
 
+Int_t TH4D::GetBin(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const {
+  Int_t ofy = GetYaxis()->GetNbins() + 1;
+  if (biny < 0) biny = 0;
+  if (biny > ofy) biny = ofy;
+
+  Int_t ofz = GetZaxis()->GetNbins() + 1;
+  if (binz < 0) binz = 0;
+  if (binz > ofz) binz = ofz;
+
+  Int_t ofu = GetUaxis()->GetNbins() + 1;
+  if (binu < 0) binu = 0;
+  if (binu > ofu) binu = ofu;
+
+  return TH1::GetBin(binx) + (GetXaxis()->GetNbins() + 2) * (biny + (GetYaxis()->GetNbins() + 2) * (binz + (GetZaxis()->GetNbins() + 2) * binu ));
+}
+void TH4D::GetBinXYZU(Int_t binglobal, Int_t &binx, Int_t &biny, Int_t &binz, Int_t &binu) const
+{
+  Int_t nx  = GetXaxis()->GetNbins()+2;
+  Int_t ny  = GetYaxis()->GetNbins()+2;
+  Int_t nz  = GetZaxis()->GetNbins()+2;
+
+  binx = binglobal%nx;
+  biny = ((binglobal-binx)/nx)%ny;
+  binz = (((binglobal-binx)/nx -biny)/ny)%nz;
+  binu = (((binglobal-binx)/nx -biny)/ny-binz)/nz;
+}
+
+Double_t TH4D::GetBinContent(Int_t bin) const {
+  Int_t ix,iy,iz,iu;
+  GetBinXYZU(bin,ix,iy,iz,iu);
+  return hists.at(iu)->GetBinContent(ix,iy,iz);
+}
+Double_t TH4D::GetBinError(Int_t bin) const {
+  Int_t ix,iy,iz,iu;
+  GetBinXYZU(bin,ix,iy,iz,iu);
+  return hists.at(iu)->GetBinError(ix,iy,iz);
+}  
+
+Double_t TH4D::Integral(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Option_t *option) const {
+  Double_t dummy=0;
+  return IntegralAndError(binx1,binx2,biny1,biny2,binz1,binz2,binu1,binu2,dummy,option);
+}
+Double_t TH4D::Integral(Option_t *option) const {
+  return Integral(GetXaxis()->GetFirst(),GetXaxis()->GetLast(),
+		  GetYaxis()->GetFirst(),GetYaxis()->GetLast(),
+		  GetZaxis()->GetFirst(),GetZaxis()->GetLast(),
+		  GetUaxis()->GetFirst(),GetUaxis()->GetLast(),option);
+}
 Double_t TH4D::IntegralAndError(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Double_t & error, Option_t *option) const {
   Double_t integral=0;
   Double_t error2sum=0;
@@ -96,15 +141,13 @@ Double_t TH4D::IntegralAndError(Int_t binx1, Int_t binx2, Int_t biny1, Int_t bin
   error=sqrt(error2sum);
   return integral;
 }
-Double_t TH4D::Integral(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Option_t *option) const {
-  Double_t dummy=0;
-  return IntegralAndError(binx1,binx2,biny1,biny2,binz1,binz2,binu1,binu2,dummy,option);
-}
-Double_t TH4D::Integral(Option_t *option) const {
-  return Integral(GetXaxis()->GetFirst(),GetXaxis()->GetLast(),
-		  GetYaxis()->GetFirst(),GetYaxis()->GetLast(),
-		  GetZaxis()->GetFirst(),GetZaxis()->GetLast(),
-		  GetUaxis()->GetFirst(),GetUaxis()->GetLast(),option);
+
+Long64_t TH4D::Merge(TCollection *list){
+  TIter iter(list);
+  while(TObject *obj=iter()){
+    if(obj) Add((TH1*)obj);
+  }    
+  return true;
 }
 
 TH1D* TH4D::ProjectionX(const char *name, Int_t iymin, Int_t iymax, Int_t izmin, Int_t izmax, Int_t iumin, Int_t iumax, Option_t *option) const {
@@ -161,24 +204,26 @@ TH1D* TH4D::ProjectionU(const char *name, Int_t ixmin, Int_t ixmax, Int_t iymin,
   }
   return hist;
 }
-bool TH4D::CheckConsistency() const {
-  int nbinsu=GetUaxis()->GetNbins();
-  bool consistent=true;
-  for(int i=1;i<nbinsu+2;i++){
-    consistent&=TH1::CheckConsistency((TH1*)hists.at(0),(TH1*)hists.at(i));
-  }
-  if(!consistent){
-    Error("TH4D","not consistent");
-    return false;
-  }
-  return true;
+
+void TH4D::SetBinContent(Int_t bin, Double_t content){
+  Int_t ix,iy,iz,iu;
+  GetBinXYZU(bin,ix,iy,iz,iu);
+  return hists.at(iu)->SetBinContent(ix,iy,iz,content);
+}  
+
+void TH4D::SetBinError(Int_t bin, Double_t error){
+  Int_t ix,iy,iz,iu;
+  GetBinXYZU(bin,ix,iy,iz,iu);
+  return hists.at(iu)->SetBinError(ix,iy,iz,error);
+}  
+
+void TH4D::SetDirectory(TDirectory *dir){
+  TH1::SetDirectory(dir);
+  for(auto hist:hists) hist->SetDirectory(dir);
 }
-bool TH4D::CheckConsistency(const TH4D* h1) const {
-  return CheckConsistency(h1,this);
+
+void TH4D::Sumw2(Bool_t flag){
+  TH1::Sumw2(flag);
+  for(auto hist:hists) hist->TH1::Sumw2(flag);
 }
-bool TH4D::CheckConsistency(const TH4D* h1,const TH4D* h2) {
-  if(!h1->CheckConsistency()) return false;
-  if(!h2->CheckConsistency()) return false;
-  if(!CheckEqualAxes(h1->GetUaxis(),h2->GetUaxis())) return false; 
-  return true;
-}
+
