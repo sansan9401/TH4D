@@ -2,6 +2,7 @@
 #define __HS_TH4D__
 #include <vector>
 #include "TH3.h"
+#include "TH2D.h"
 #include "TFile.h"
 
 class TH4D : public TH1{
@@ -68,6 +69,7 @@ class TH4D : public TH1{
   virtual TH1D* ProjectionY(const char *name="_py", Int_t ixmin=0, Int_t ixmax=-1, Int_t izmin=0, Int_t izmax=-1, Int_t iumin=0, Int_t iumax=-1, Option_t *option="") const;
   virtual TH1D* ProjectionZ(const char *name="_pz", Int_t ixmin=0, Int_t ixmax=-1, Int_t iymin=0, Int_t iymax=-1, Int_t iumin=0, Int_t iumax=-1, Option_t *option="") const;
   virtual TH1D* ProjectionU(const char *name="_pu", Int_t ixmin=0, Int_t ixmax=-1, Int_t iymin=0, Int_t iymax=-1, Int_t izmin=0, Int_t izmax=-1, Option_t *option="") const;
+  virtual TH2D* ProjectionXZ(const char *name="_pxz", Int_t iymin=0, Int_t iymax=-1, Int_t iumin=0, Int_t iumax=-1, Option_t *option="") const;
 
   virtual void SetBinContent(Int_t bin, Double_t content);
   virtual void SetBinContent(Int_t binx, Int_t biny, Int_t binz, Int_t binu, Double_t content) { SetBinContent(GetBin(binx, biny, binz, binu), content); }

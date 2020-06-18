@@ -204,6 +204,28 @@ TH1D* TH4D::ProjectionU(const char *name, Int_t ixmin, Int_t ixmax, Int_t iymin,
   }
   return hist;
 }
+TH2D* TH4D::ProjectionXZ(const char *name, Int_t iymin, Int_t iymax, Int_t iumin, Int_t iumax, Option_t *option) const {
+  TH2D* hist=NULL;
+  if(iumax==-1) iumax=GetUaxis()->GetNbins()+1;
+  for(int i=iumin;i<=iumax;i++){
+    int x_first_old=hists.at(i)->GetXaxis()->GetFirst(),x_last_old=hists.at(i)->GetXaxis()->GetLast();
+    hists.at(i)->GetXaxis()->SetRange(0,-1);
+    int y_first_old=hists.at(i)->GetYaxis()->GetFirst(),y_last_old=hists.at(i)->GetYaxis()->GetLast();
+    hists.at(i)->GetYaxis()->SetRange(iymin,iymax);
+    int z_first_old=hists.at(i)->GetZaxis()->GetFirst(),z_last_old=hists.at(i)->GetZaxis()->GetLast();
+    hists.at(i)->GetZaxis()->SetRange(0,-1);
+    TH2D* this_hist=(TH2D*)hists.at(i)->Project3D("zx");
+    hists.at(i)->GetXaxis()->SetRange(x_first_old,x_last_old);
+    hists.at(i)->GetYaxis()->SetRange(y_first_old,y_last_old);
+    hists.at(i)->GetZaxis()->SetRange(z_first_old,z_last_old);
+    if(hist){
+      hist->Add(this_hist);
+      delete this_hist;
+    }
+    else hist=this_hist;
+  }
+  return hist;
+}
 
 void TH4D::SetBinContent(Int_t bin, Double_t content){
   Int_t ix,iy,iz,iu;
