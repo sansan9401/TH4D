@@ -82,6 +82,14 @@ bool TH4D::CheckConsistency(const TH4D* h1,const TH4D* h2) {
   return true;
 }
 
+void TH4D::Draw(Option_t *option){
+  TString opt=option; opt.ToLower();
+  if(opt.Contains("px")) ProjectionX()->Draw(option);
+  else if(opt.Contains("py")) ProjectionY()->Draw(option);
+  else if(opt.Contains("pz")) ProjectionZ()->Draw(option);
+  else ProjectionU()->Draw(option);
+}
+
 Int_t TH4D::GetBin(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const {
   Int_t ofy = GetYaxis()->GetNbins() + 1;
   if (biny < 0) biny = 0;

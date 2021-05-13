@@ -43,6 +43,8 @@ class TH4D : public TH1{
   virtual bool CheckConsistency() const;
   virtual bool CheckConsistency(const TH4D* h1) const { return CheckConsistency(h1,this); }
   static bool CheckConsistency(const TH4D* h1,const TH4D* h2);
+  
+  virtual void Draw(Option_t *option="");
 
   virtual Int_t Fill(Double_t x, Double_t y, Double_t z, Double_t u, Double_t w) { return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z,w); }
   virtual Int_t Fill(Double_t x, Double_t y, Double_t z, Double_t u) { return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z); };
