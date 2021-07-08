@@ -16,6 +16,7 @@ class TH4D : public TH1{
   virtual Double_t GetBinContent(Int_t, Int_t, Int_t) const { return -1; } //MayNotUse
   virtual Double_t GetBinError(Int_t, Int_t) const { return -1; } //MayNotUse
   virtual Double_t GetBinError(Int_t, Int_t, Int_t) const { return -1; } //MayNotUse
+  virtual Int_t    GetNcells() const {return -1; } //NotImplemented
   virtual Double_t IntegralAndError(Int_t, Int_t, Double_t & err, Option_t *option="") const{return -1;} // MayNotUse
   virtual Double_t Integral(Int_t, Int_t, Option_t*) const{return -1;} // MayNotUse
   virtual void SetBinContent(Int_t, Int_t, Double_t) { return; } //MayNotUse
@@ -43,6 +44,8 @@ class TH4D : public TH1{
   virtual bool CheckConsistency() const;
   virtual bool CheckConsistency(const TH4D* h1) const { return CheckConsistency(h1,this); }
   static bool CheckConsistency(const TH4D* h1,const TH4D* h2);
+
+  virtual TObject* Clone(const char* newname) const;
   
   virtual void Draw(Option_t *option="");
 
@@ -71,6 +74,8 @@ class TH4D : public TH1{
   virtual TH1D* ProjectionZ(const char *name="_pz", Int_t ixmin=0, Int_t ixmax=-1, Int_t iymin=0, Int_t iymax=-1, Int_t iumin=0, Int_t iumax=-1, Option_t *option="") const;
   virtual TH1D* ProjectionU(const char *name="_pu", Int_t ixmin=0, Int_t ixmax=-1, Int_t iymin=0, Int_t iymax=-1, Int_t izmin=0, Int_t izmax=-1, Option_t *option="") const;
 
+  virtual void Scale(Double_t c1=1, Option_t *option="");
+    
   virtual void SetBinContent(Int_t bin, Double_t content);
   virtual void SetBinContent(Int_t binx, Int_t biny, Int_t binz, Int_t binu, Double_t content) { SetBinContent(GetBin(binx, biny, binz, binu), content); }
   virtual void SetBinError(Int_t bin, Double_t error);
@@ -80,6 +85,8 @@ class TH4D : public TH1{
   virtual void SetDirectory(TDirectory *dir);
 
   virtual void Sumw2(Bool_t flag=kTRUE);
+
+  virtual void Reset(Option_t *option="");
 
   //virtual Int_t WriteFile(TString path=".");
   //virtual Int_t ReadFile(TString path);

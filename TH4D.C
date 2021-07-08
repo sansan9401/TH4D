@@ -23,7 +23,7 @@ TH4D::TH4D(const char *name,const char *title,Int_t nbinsx,Double_t xlow,Double_
   fXaxis.Set(nbinsu,ulow,uup);
   for(int i=0;i<nbinsu+2;i++){
     TH3D* hist=new TH3D(TString::Format("%s_ubin%d",GetName(),i),Form("%d",i),nbinsx,xlow,xup,nbinsy,ylow,yup,nbinsz,zlow,zup);
-    hist->SetDirectory(GetDirectory());
+    hist->SetDirectory(NULL);
     hists.push_back(hist);
     //hists.back()->Sumw2();
   }
@@ -41,7 +41,7 @@ TH4D::TH4D(const char *name,const char *title,Int_t nbinsx,const Double_t *xbins
   fXaxis.Set(nbinsu,ubins);
   for(int i=0;i<nbinsu+2;i++){
     TH3D* hist=new TH3D(TString::Format("%s_ubin%d",GetName(),i),Form("%d",i),nbinsx,xbins,nbinsy,ybins,nbinsz,zbins);
-    hist->SetDirectory(GetDirectory());
+    hist->SetDirectory(NULL);
     hists.push_back(hist);
     //hists.back()->Sumw2();
   }
@@ -80,6 +80,15 @@ bool TH4D::CheckConsistency(const TH4D* h1,const TH4D* h2) {
   if(!h2->CheckConsistency()) return false;
   if(!CheckEqualAxes(h1->GetUaxis(),h2->GetUaxis())) return false; 
   return true;
+}
+
+TObject* TH4D::Clone(const char* newname) const {
+  TH4D* h=(TH4D*)TH1::Clone(newname);
+  int nubins=GetUaxis()->GetNbins();
+  for(int i=0;i<nubins+2;i++){
+    h->hists.push_back((TH3D*)hists.at(i)->Clone(TString::Format("%s_ubin%d",h->GetName(),i)));
+  }
+  return (TObject*)h;
 }
 
 void TH4D::Draw(Option_t *option){
@@ -167,7 +176,13 @@ TH1D* TH4D::ProjectionX(const char *name, Int_t iymin, Int_t iymax, Int_t izmin,
       hist->Add(this_hist);
       delete this_hist;
     }
-    else hist=this_hist;
+    else{
+      hist=this_hist;
+      TString hname = name;
+      if (hname == "_px") hname = TString::Format("%s%s", GetName(), name);
+      hist->SetName(hname);
+      hist->SetTitle(TString::Format("%s ( Projection X )",GetTitle()));
+    }
   }
   return hist;
 }
@@ -180,7 +195,13 @@ TH1D* TH4D::ProjectionY(const char *name, Int_t ixmin, Int_t ixmax, Int_t izmin,
       hist->Add(this_hist);
       delete this_hist;
     }
-    else hist=this_hist;
+    else{
+      hist=this_hist;
+      TString hname = name;
+      if (hname == "_py") hname = TString::Format("%s%s", GetName(), name);
+      hist->SetName(hname);
+      hist->SetTitle(TString::Format("%s ( Projection Y )",GetTitle()));
+    }
   }
   return hist;
 }
@@ -188,19 +209,25 @@ TH1D* TH4D::ProjectionZ(const char *name, Int_t ixmin, Int_t ixmax, Int_t iymin,
   TH1D* hist=NULL;
   if(iumax==-1) iumax=GetUaxis()->GetNbins()+1;
   for(int i=iumin;i<=iumax;i++){
-    TH1D* this_hist=hists.at(i)->ProjectionZ(name,ixmin,ixmax,iymin,iymax,option);
+    TH1D* this_hist=hists.at(i)->ProjectionZ("_pz",ixmin,ixmax,iymin,iymax,option);
     if(hist){
       hist->Add(this_hist);
       delete this_hist;
     }
-    else hist=this_hist;
+    else{
+      hist=this_hist;
+      TString hname = name;
+      if (hname == "_pz") hname = TString::Format("%s%s", GetName(), name);
+      hist->SetName(hname);
+      hist->SetTitle(TString::Format("%s ( Projection Z )",GetTitle()));
+    }
   }
   return hist;
 }
 TH1D* TH4D::ProjectionU(const char *name, Int_t ixmin, Int_t ixmax, Int_t iymin, Int_t iymax, Int_t izmin, Int_t izmax, Option_t *option) const {
   TString hname = name;
-  if (hname == "_px") hname = TString::Format("%s%s", GetName(), name);
-  TString title =  TString::Format("%s ( Projection X )",GetTitle());
+  if (hname == "_pu") hname = TString::Format("%s%s", GetName(), name);
+  TString title =  TString::Format("%s ( Projection U )",GetTitle());
   TH1D* hist=NULL;
   if(GetUaxis()->GetXbins()->GetArray()) hist=new TH1D(hname,title,GetUaxis()->GetNbins(),GetUaxis()->GetXbins()->GetArray());
   else hist=new TH1D(hname,title,GetUaxis()->GetNbins(),GetUaxis()->GetXmin(),GetUaxis()->GetXmax());
@@ -211,6 +238,13 @@ TH1D* TH4D::ProjectionU(const char *name, Int_t ixmin, Int_t ixmax, Int_t iymin,
     hist->SetBinError(i,error);
   }
   return hist;
+}
+
+void TH4D::Scale(Double_t c1, Option_t *option){
+  int nubins=GetUaxis()->GetNbins();
+  for(int i=0;i<nubins+2;i++){
+    hists.at(i)->Scale(c1,option);
+  }
 }
 
 void TH4D::SetBinContent(Int_t bin, Double_t content){
@@ -227,7 +261,7 @@ void TH4D::SetBinError(Int_t bin, Double_t error){
 
 void TH4D::SetDirectory(TDirectory *dir){
   TH1::SetDirectory(dir);
-  for(auto hist:hists) hist->SetDirectory(dir);
+  for(auto hist:hists) hist->SetDirectory(NULL);
 }
 
 void TH4D::Sumw2(Bool_t flag){
@@ -235,3 +269,10 @@ void TH4D::Sumw2(Bool_t flag){
   for(auto hist:hists) hist->TH1::Sumw2(flag);
 }
 
+void TH4D::Reset(Option_t *option){
+  TH1::Reset(option);
+  int nubins=GetUaxis()->GetNbins();
+  for(int i=0;i<nubins+2;i++){
+    hists.at(i)->Reset(option);
+  } 
+}
