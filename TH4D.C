@@ -136,7 +136,10 @@ Double_t TH4D::GetBinError(Int_t bin) const {
   GetBinXYZU(bin,ix,iy,iz,iu);
   return hists.at(iu)->GetBinError(ix,iy,iz);
 }  
-
+Int_t TH4D::GetNcells() const {
+  if(hists.size()&&hists.at(0)) return hists.size()*hists.at(0)->GetNcells();
+  else return 0;
+}
 Double_t TH4D::Integral(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Option_t *option) const {
   Double_t dummy=0;
   return IntegralAndError(binx1,binx2,biny1,biny2,binz1,binz2,binu1,binu2,dummy,option);

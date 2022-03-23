@@ -16,7 +16,6 @@ class TH4D : public TH1{
   virtual Double_t GetBinContent(Int_t, Int_t, Int_t) const { return -1; } //MayNotUse
   virtual Double_t GetBinError(Int_t, Int_t) const { return -1; } //MayNotUse
   virtual Double_t GetBinError(Int_t, Int_t, Int_t) const { return -1; } //MayNotUse
-  virtual Int_t    GetNcells() const {return -1; } //NotImplemented
   virtual Double_t IntegralAndError(Int_t, Int_t, Double_t & err, Option_t *option="") const{return -1;} // MayNotUse
   virtual Double_t Integral(Int_t, Int_t, Option_t*) const{return -1;} // MayNotUse
   virtual void SetBinContent(Int_t, Int_t, Double_t) { return; } //MayNotUse
@@ -58,6 +57,7 @@ class TH4D : public TH1{
   virtual Double_t GetBinContent(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const { return GetBinContent( GetBin(binx, biny, binz, binu) ); }
   virtual Double_t GetBinError(Int_t bin) const;
   virtual Double_t GetBinError(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const { return GetBinError(GetBin(binx, biny, binz, binu)); }
+  virtual Int_t    GetNcells() const;
 
   virtual const TAxis* GetXaxis() const {if(hists.size()) return hists[0]->GetXaxis();else return NULL;}
   virtual const TAxis* GetYaxis() const {if(hists.size()) return hists[0]->GetYaxis();else return NULL;}
