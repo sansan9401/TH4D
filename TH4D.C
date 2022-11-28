@@ -87,6 +87,7 @@ TObject* TH4D::Clone(const char* newname) const {
   int nubins=GetUaxis()->GetNbins();
   for(int i=0;i<nubins+2;i++){
     h->hists.push_back((TH3D*)hists.at(i)->Clone(TString::Format("%s_ubin%d",h->GetName(),i)));
+    h->hists.back()->SetDirectory(NULL);
   }
   return (TObject*)h;
 }
@@ -97,6 +98,38 @@ void TH4D::Draw(Option_t *option){
   else if(opt.Contains("py")) ProjectionY()->Draw(option);
   else if(opt.Contains("pz")) ProjectionZ()->Draw(option);
   else ProjectionU()->Draw(option);
+}
+
+Bool_t TH4D::Divide(const TH1 *h1){
+  if (!h1) {
+    Error("Divide","Attempt to divide a non-existing histogram");
+    return kFALSE;
+  }
+  if(!CheckConsistency((TH4D*)h1)){
+    Error("Divide","Can't divide. Not consistent");
+    return kFALSE;
+  }
+  int nubins=GetUaxis()->GetNbins();
+  for(int i=0;i<nubins+2;i++){
+    hists.at(i)->Divide((TH1*)((TH4D*)h1)->hists.at(i));
+  }
+  return true;  
+}
+
+Bool_t TH4D::Divide(const TH1 *h1, const TH1 *h2, Double_t c1, Double_t c2, Option_t *option){
+  if (!h1 || !h2) {
+    Error("Divide","Attempt to divide a non-existing histogram");
+    return kFALSE;
+  }
+  if(!CheckConsistency((TH4D*)h1)||!CheckConsistency((TH4D*)h2)){
+    Error("Divide","Can't divide. Not consistent");
+    return kFALSE;
+  }
+  int nubins=GetUaxis()->GetNbins();
+  for(int i=0;i<nubins+2;i++){
+    hists.at(i)->Divide((TH1*)((TH4D*)h1)->hists.at(i),(TH1*)((TH4D*)h2)->hists.at(i),c1,c2,option);
+  }
+  return true;  
 }
 
 Int_t TH4D::GetBin(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const {

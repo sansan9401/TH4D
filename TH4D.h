@@ -48,6 +48,9 @@ class TH4D : public TH1{
   
   virtual void Draw(Option_t *option="");
 
+  virtual Bool_t Divide(const TH1 *h1);
+  virtual Bool_t Divide(const TH1 *h1, const TH1 *h2, Double_t c1=1., Double_t c2=1., Option_t *option="");
+
   virtual Int_t Fill(Double_t x, Double_t y, Double_t z, Double_t u, Double_t w) { return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z,w); }
   virtual Int_t Fill(Double_t x, Double_t y, Double_t z, Double_t u) { return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z); };
 
