@@ -60,6 +60,10 @@ class TH4D : public TH1{
   virtual Double_t GetBinContent(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const { return GetBinContent( GetBin(binx, biny, binz, binu) ); }
   virtual Double_t GetBinError(Int_t bin) const;
   virtual Double_t GetBinError(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const { return GetBinError(GetBin(binx, biny, binz, binu)); }
+  virtual Int_t    GetNbinsX() const { return GetXaxis()->GetNbins(); }
+  virtual Int_t    GetNbinsY() const { return GetYaxis()->GetNbins(); }
+  virtual Int_t    GetNbinsZ() const { return GetZaxis()->GetNbins(); }
+  virtual Int_t    GetNbinsU() const { return GetUaxis()->GetNbins(); }
   virtual Int_t    GetNcells() const;
 
   virtual const TAxis* GetXaxis() const {if(hists.size()) return hists[0]->GetXaxis();else return NULL;}

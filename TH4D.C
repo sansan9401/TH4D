@@ -133,6 +133,10 @@ Bool_t TH4D::Divide(const TH1 *h1, const TH1 *h2, Double_t c1, Double_t c2, Opti
 }
 
 Int_t TH4D::GetBin(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const {
+  Int_t ofx = GetXaxis()->GetNbins() + 1;
+  if (binx < 0) binx = 0;
+  if (binx > ofx) binx = ofx;
+ 
   Int_t ofy = GetYaxis()->GetNbins() + 1;
   if (biny < 0) biny = 0;
   if (biny > ofy) biny = ofy;
@@ -145,7 +149,7 @@ Int_t TH4D::GetBin(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const {
   if (binu < 0) binu = 0;
   if (binu > ofu) binu = ofu;
 
-  return TH1::GetBin(binx) + (GetXaxis()->GetNbins() + 2) * (biny + (GetYaxis()->GetNbins() + 2) * (binz + (GetZaxis()->GetNbins() + 2) * binu ));
+  return binx + (GetXaxis()->GetNbins() + 2) * (biny + (GetYaxis()->GetNbins() + 2) * (binz + (GetZaxis()->GetNbins() + 2) * binu ));
 }
 void TH4D::GetBinXYZU(Int_t binglobal, Int_t &binx, Int_t &biny, Int_t &binz, Int_t &binu) const
 {
@@ -186,6 +190,11 @@ Double_t TH4D::Integral(Option_t *option) const {
 Double_t TH4D::IntegralAndError(Int_t binx1, Int_t binx2, Int_t biny1, Int_t biny2, Int_t binz1, Int_t binz2, Int_t binu1, Int_t binu2, Double_t & error, Option_t *option) const {
   Double_t integral=0;
   Double_t error2sum=0;
+
+  Int_t nu = GetNbinsU() + 2;
+  if (binu1 < 0) binu1 = 0;
+  if (binu2 >= nu || binu2 < binu1) binu2 = nu - 1;
+
   for(int i=binu1;i<=binu2;i++){
     Double_t this_error=0;
     integral+=hists[i]->IntegralAndError(binx1,binx2,biny1,biny2,binz1,binz2,this_error,option);
