@@ -53,6 +53,7 @@ class TH4D : public TH1{
 
   virtual Int_t Fill(Double_t x, Double_t y, Double_t z, Double_t u, Double_t w) { return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z,w); }
   virtual Int_t Fill(Double_t x, Double_t y, Double_t z, Double_t u) { return hists.at(GetUaxis()->FindBin(u))->Fill(x,y,z); };
+  virtual Int_t FindBin(Double_t x, Double_t y, Double_t z, Double_t u) const;
 
   virtual Int_t GetBin(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const;
   virtual void GetBinXYZU(Int_t binglobal, Int_t &binx, Int_t &biny, Int_t &binz, Int_t &binu) const;

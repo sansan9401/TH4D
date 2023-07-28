@@ -131,6 +131,13 @@ Bool_t TH4D::Divide(const TH1 *h1, const TH1 *h2, Double_t c1, Double_t c2, Opti
   }
   return true;  
 }
+Int_t TH4D::FindBin(Double_t x, Double_t y, Double_t z, Double_t u) const {
+  int ix=GetXaxis()->FindBin(x);
+  int iy=GetYaxis()->FindBin(y);
+  int iz=GetZaxis()->FindBin(z);
+  int iu=GetUaxis()->FindBin(u);
+  return GetBin(ix,iy,iz,iu);
+}
 
 Int_t TH4D::GetBin(Int_t binx, Int_t biny, Int_t binz, Int_t binu) const {
   Int_t ofx = GetXaxis()->GetNbins() + 1;
